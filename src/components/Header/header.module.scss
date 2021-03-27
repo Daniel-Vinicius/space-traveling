@@ -9,8 +9,20 @@
   margin: 0 auto;
   max-width: 1120px;
   height: 100%;
-}
 
-.logo {
-  margin-left: 200px;
+  a {
+    transition: filter;
+
+    &:hover {
+      filter: brightness(0.8);
+    }
+
+    cursor: pointer;
+    width: 43.75rem;
+    max-width: 43.75rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
 }

@@ -1,1 +1,79 @@
-// TODO
+.homeContainer {
+  max-width: 43.75rem;
+  margin: 1rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.post {
+  width: 100%;
+  height: 6.75rem;
+  display: flex;
+  flex-direction: column;
+
+  transition: filter;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.8);
+  }
+
+  & + div.post {
+    margin-top: 3rem;
+  }
+
+  h2 {
+    color: var(--heading);
+    margin-bottom: 0.5rem;
+    font-size: 28px;
+  }
+
+  span {
+    font-size: 18px;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+  }
+
+  .info {
+    display: flex;
+    align-items: center;
+    height: 1.25rem;
+    width: 300px;
+    p {
+      color: var(--info);
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+      & + p {
+        margin-left: 1.5rem;
+      }
+    }
+  }
+}
+
+.morePosts {
+  margin-top: 4rem;
+  display: flex;
+  width: 100%;
+  height: 1.375rem;
+  justify-content: flex-start;
+  align-items: flex-start;
+  button {
+    width: 11rem;
+    height: 1.375rem;
+    color: var(--highlight);
+    border: 0;
+    font-weight: 600;
+    background: transparent;
+    font-size: 1.125rem;
+
+    transition: filter;
+
+    &:hover {
+      filter: brightness(0.8);
+    }
+  }
+}
