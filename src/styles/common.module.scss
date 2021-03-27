@@ -1,11 +1,24 @@
-img {
-  width: 100%;
+.container {
+  max-width: 43.75rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
-div,
-section,
-header,
-footer,
-main {
-  max-width: 1120px;
+.info {
+  display: flex;
+  align-items: center;
+  height: 1.25rem;
+  p {
+    color: var(--info);
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    & + p {
+      margin-left: 1.5rem;
+    }
+  }
 }

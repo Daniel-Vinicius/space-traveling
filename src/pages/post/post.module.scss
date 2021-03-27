@@ -1,1 +1,19 @@
-// TODO
+.preview {
+  width: 99.3vw;
+}
+
+.contentContainer {
+  margin-top: 5rem;
+
+  h1 {
+    font-size: 3rem;
+    color: var(--heading);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .content {
+    margin-top: 4rem;
+    line-height: 1.5rem;
+  }
+}
