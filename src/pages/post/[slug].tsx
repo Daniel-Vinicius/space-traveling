@@ -1,4 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
+import Head from 'next/head';
 import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 
 import { format } from 'date-fns';
@@ -41,7 +42,6 @@ export default function Post({ post }: PostProps): JSX.Element {
 
   if (router.isFallback) {
     return (
-      // <>Carregando </>
       <p
         style={{
           position: 'absolute',
@@ -79,6 +79,9 @@ export default function Post({ post }: PostProps): JSX.Element {
 
   return (
     <>
+      <Head>
+        <title>{post.data.title}</title>
+      </Head>
       <Header />
       <div className={commonStyles.container}>
         <div className={styles.preview}>
@@ -103,10 +106,7 @@ export default function Post({ post }: PostProps): JSX.Element {
             </p>
           </div>
           {postWithDateFormatedAndReadingTime.data.content.map(section => (
-            <section
-              key={section.body[0].text}
-              className={styles.sectionContent}
-            >
+            <section key={section.heading} className={styles.sectionContent}>
               <h3>{section.heading}</h3>
               <div
                 className={styles.content}
@@ -129,6 +129,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     [Prismic.Predicates.at('document.type', 'post')],
     {
       pageSize: 10,
+      fetch: ['post.uid'],
     }
   );
 
@@ -148,9 +149,28 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const response = await prismic.getByUID('post', String(slug), {});
 
+  const post = {
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
+    data: {
+      title: response.data.title,
+      subtitle: response.data.subtitle,
+      author: response.data.author,
+      banner: {
+        url: response.data.banner.url,
+      },
+      content: response.data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: [...content.body],
+        };
+      }),
+    },
+  };
+
   return {
     props: {
-      post: response,
+      post,
     },
     revalidate: 3600,
   };

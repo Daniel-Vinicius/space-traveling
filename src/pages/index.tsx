@@ -1,5 +1,6 @@
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
+import Head from 'next/head';
 
 import { FiCalendar, FiUser } from 'react-icons/fi';
 
@@ -78,9 +79,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       return;
     }
 
-    const url = `${next_page}&access_token=MC5ZRl9DUFJNQUFDRUFSWUR0.C--_vT3vv70Q77-977-9NCjvv73vv73vv71IAEMm77-9Du-_ve-_ve-_ve-_ve-_vQnvv73vv71V77-977-977-977-9JA`;
-
-    const nextPosts = await fetch(url);
+    const nextPosts = await fetch(next_page);
 
     const nextPostsJSON = await nextPosts.json();
 
@@ -95,34 +94,39 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
   }
 
   return (
-    <div className={commonStyles.container}>
-      <div className={commonStyles.logo}>
-        <img src="/images/logo.svg" alt="logo" />
-      </div>
-      {posts.map(post => (
-        <Link href={`/post/${post.uid}`} key={post.uid}>
-          <div className={styles.post}>
-            <h2>{post.data.title}</h2>
-            <span>{post.data.subtitle}</span>
-            <div className={commonStyles.info}>
-              <p>
-                <FiCalendar /> {post.first_publication_date}
-              </p>
-              <p>
-                <FiUser /> {post.data.author}
-              </p>
-            </div>
-          </div>
-        </Link>
-      ))}
-      {nextPage && (
-        <div className={styles.morePosts}>
-          <button type="button" onClick={getMorePosts}>
-            Carregar mais posts
-          </button>
+    <>
+      <Head>
+        <title>Space Traveling</title>
+      </Head>
+      <div className={commonStyles.container}>
+        <div className={commonStyles.logo}>
+          <img src="/images/logo.svg" alt="logo" />
         </div>
-      )}
-    </div>
+        {posts.map(post => (
+          <Link href={`/post/${post.uid}`} key={post.uid}>
+            <div className={styles.post}>
+              <h2>{post.data.title}</h2>
+              <span>{post.data.subtitle}</span>
+              <div className={commonStyles.info}>
+                <p>
+                  <FiCalendar /> {post.first_publication_date}
+                </p>
+                <p>
+                  <FiUser /> {post.data.author}
+                </p>
+              </div>
+            </div>
+          </Link>
+        ))}
+        {nextPage && (
+          <div className={styles.morePosts}>
+            <button type="button" onClick={getMorePosts}>
+              Carregar mais posts
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -132,7 +136,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'post')],
     {
-      pageSize: 1,
+      pageSize: 10,
     }
   );
 
