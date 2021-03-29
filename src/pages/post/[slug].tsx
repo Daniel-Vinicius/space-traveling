@@ -4,7 +4,6 @@ import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
-import consola from 'consola';
 import Prismic from '@prismicio/client';
 
 import { RichText } from 'prismic-dom';
@@ -72,11 +71,9 @@ export default function Post({ post }: PostProps): JSX.Element {
     <>
       <Header />
       <div className={commonStyles.container}>
-        <img
-          className={styles.preview}
-          src={postWithDateFormated.data.banner.url}
-          alt="Banner"
-        />
+        <div className={styles.preview}>
+          <img src={postWithDateFormated.data.banner.url} alt="Banner" />
+        </div>
         <main className={styles.contentContainer}>
           <h1>{postWithDateFormated.data.title}</h1>
           <div className={commonStyles.info}>
@@ -90,13 +87,21 @@ export default function Post({ post }: PostProps): JSX.Element {
               <FiClock /> 4 min
             </p>
           </div>
-          {/* <div
-            className={styles.content}
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: postWithDateFormated.data.content[0].heading,
-            }}
-          /> */}
+          {postWithDateFormated.data.content.map(section => (
+            <section
+              key={section.body[0].text}
+              className={styles.sectionContent}
+            >
+              <h3>{section.heading}</h3>
+              <div
+                className={styles.content}
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: RichText.asHtml(section.body),
+                }}
+              />
+            </section>
+          ))}
         </main>
       </div>
     </>
@@ -128,42 +133,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const response = await prismic.getByUID('post', String(slug), {});
 
-  const arrayContentBody = response.data.content.map(content => content.body);
-
-  const arrayContentHeading = response.data.content.map(
-    content => content.heading
-  );
-
-  // consola.fatal(response.data.content);
-  // consola.fatal(arrayContentBody);
-  // consola.fatal(arrayContentHeading);
-  // consola.fatal(response.data.content[0].body);
-  consola.fatal(arrayContentHeading[response.data.content.length - 1]);
-
-  const post = {
-    first_publication_date: response.first_publication_date,
-    uid: response.uid,
-    data: {
-      title: response.data.title,
-      subtitle: response.data.subtitle,
-      banner: {
-        url: response.data.banner.url,
-      },
-      author: response.data.author,
-      content: [
-        {
-          heading: arrayContentHeading[0],
-          body: arrayContentBody,
-        },
-      ],
-    },
-  };
-
-  // consola.fatal(post.data.content);
-
   return {
     props: {
-      post,
+      post: response,
     },
     revalidate: 3600,
   };
