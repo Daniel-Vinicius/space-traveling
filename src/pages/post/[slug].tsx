@@ -1,8 +1,17 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
-import Header from '../../components/Header';
 
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
+import consola from 'consola';
+import Prismic from '@prismicio/client';
+
+import { RichText } from 'prismic-dom';
+import { useRouter } from 'next/router';
 import { getPrismicClient } from '../../services/prismic';
+
+import Header from '../../components/Header';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
@@ -28,72 +37,134 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post(): JSX.Element {
+export default function Post({ post }: PostProps): JSX.Element {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return (
+      // <>Carregando </>
+      <p
+        style={{
+          position: 'absolute',
+          top: '50%',
+          bottom: '50%',
+          left: '50%',
+          right: '50%',
+        }}
+      >
+        Carregando...
+      </p>
+    );
+  }
+
+  const postWithDateFormated = {
+    ...post,
+    first_publication_date: format(
+      new Date(post.first_publication_date),
+      "dd MMM' 'yyyy",
+      {
+        locale: ptBR,
+      }
+    ),
+  };
+
   return (
     <>
       <Header />
       <div className={commonStyles.container}>
-        <img className={styles.preview} src="/banner.png" alt="Banner" />
+        <img
+          className={styles.preview}
+          src={postWithDateFormated.data.banner.url}
+          alt="Banner"
+        />
         <main className={styles.contentContainer}>
-          <h1>Criando um app CRA do zero </h1>
+          <h1>{postWithDateFormated.data.title}</h1>
           <div className={commonStyles.info}>
             <p>
-              <FiCalendar /> 15 Mar 2021
+              <FiCalendar /> {postWithDateFormated.first_publication_date}
             </p>
             <p>
-              <FiUser /> Daniel Vinicius
+              <FiUser /> {postWithDateFormated.data.author}
             </p>
             <p>
               <FiClock /> 4 min
             </p>
           </div>
-          <div className={styles.content}>
-            <h3>Algo</h3>
-            <p>
-              Lorem ipsum dolor sit amet. Ola Pessoal Pessoal ola São São ola
-              Pessoal Uhuuuu Demais Pessoal São São ola Demais ola Batatas
-              Batatas. Ola Pessoal Demais ola Pessoal São ola São Demais Batatas
-              Pessoal ola Pessoal. Batatas São São ola Uhuuuu São! Pessoal
-              Batatas ola Demais Pessoal ola Uhuuuu Demais Pessoal Batatas ola
-              São Demais.
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet. Uhuuuu Uhuuuu ola São Pessoal ola
-              Pessoal Demais Pessoal. Uhuuuu Batatas ola Pessoal Batatas Uhuuuu
-              ola Uhuuuu Demais. Uhuuuu Demais Demais ola Uhuuuu Pessoal . Ola
-              Batatas Demais ola Batatas Batatas São ola Uhuuuu Demais? Ola
-              Uhuuuu Pessoal Uhuuuu Batatas São Uhuuuu Demais ola Pessoal Uhuuuu
-              Pessoal Demais Pessoal. Uhuuuu Demais Demais São Ola Batatas.
-              Uhuuuu Demais São Uhuuuu ola São Batatas ola Uhuuuu Uhuuuu Pessoal
-              Uhuuuu ola Pessoal. Batatas Uhuuuu Pessoal Uhuuuu Batatas Uhuuuu
-              ola Pessoal Pessoal ola Pessoal São ola Demais? Lorem ipsum dolor
-              sit amet. Uhuuuu Uhuuuu ola São Pessoal ola Pessoal Demais
-              Pessoal. Uhuuuu Batatas ola Pessoal Batatas Uhuuuu ola Uhuuuu
-              Demais. Uhuuuu Demais Demais ola Uhuuuu Pessoal . Ola Batatas
-              Demais ola Batatas Batatas São ola Uhuuuu Demais? Ola Uhuuuu
-              Pessoal Uhuuuu Batatas São Uhuuuu Demais ola Pessoal Uhuuuu
-              Pessoal Demais Pessoal. Uhuuuu Demais Demais São Ola Batatas.
-              Uhuuuu Demais São Uhuuuu ola São Batatas ola Uhuuuu Uhuuuu Pessoal
-              Uhuuuu ola Pessoal. Batatas Uhuuuu Pessoal Uhuuuu Batatas Uhuuuu
-              ola Pessoal Pessoal ola Pessoal São ola Demais?
-            </p>
-          </div>
+          {/* <div
+            className={styles.content}
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: postWithDateFormated.data.content[0].heading,
+            }}
+          /> */}
         </main>
       </div>
     </>
   );
 }
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
+export const getStaticPaths: GetStaticPaths = async () => {
+  const prismic = getPrismicClient();
+  const postsResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'post')],
+    {
+      pageSize: 10,
+    }
+  );
 
-//   // TODO
-// };
+  const slugsArray = postsResponse.results.map(post => ({
+    params: { slug: post.uid },
+  }));
 
-// export const getStaticProps = async context => {
-//   const prismic = getPrismicClient();
-//   const response = await prismic.getByUID(TODO);
+  return {
+    paths: slugsArray,
+    fallback: true,
+  };
+};
 
-//   // TODO
-// };
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const prismic = getPrismicClient();
+  const { slug } = params;
+
+  const response = await prismic.getByUID('post', String(slug), {});
+
+  const arrayContentBody = response.data.content.map(content => content.body);
+
+  const arrayContentHeading = response.data.content.map(
+    content => content.heading
+  );
+
+  // consola.fatal(response.data.content);
+  // consola.fatal(arrayContentBody);
+  // consola.fatal(arrayContentHeading);
+  // consola.fatal(response.data.content[0].body);
+  consola.fatal(arrayContentHeading[response.data.content.length - 1]);
+
+  const post = {
+    first_publication_date: response.first_publication_date,
+    uid: response.uid,
+    data: {
+      title: response.data.title,
+      subtitle: response.data.subtitle,
+      banner: {
+        url: response.data.banner.url,
+      },
+      author: response.data.author,
+      content: [
+        {
+          heading: arrayContentHeading[0],
+          body: arrayContentBody,
+        },
+      ],
+    },
+  };
+
+  // consola.fatal(post.data.content);
+
+  return {
+    props: {
+      post,
+    },
+    revalidate: 3600,
+  };
+};
