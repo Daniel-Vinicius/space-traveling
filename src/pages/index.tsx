@@ -61,6 +61,7 @@ function FormatPosts(posts: PostPagination): Post[] {
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const { results, next_page } = postsPagination;
   const [posts, setPosts] = useState(results);
+  const [nextPage, setNextPage] = useState(next_page);
 
   async function getMorePosts(): Promise<void> {
     if (!next_page) {
@@ -76,6 +77,11 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
     const newPostsFormatted = FormatPosts(nextPostsJSON);
 
     setPosts([...posts, { ...newPostsFormatted[0] }]);
+
+    const nextPageCondition = nextPostsJSON.nextPage
+      ? nextPostsJSON.nextPage
+      : '';
+    setNextPage(nextPageCondition);
   }
 
   return (
@@ -96,7 +102,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
           </div>
         </Link>
       ))}
-      {next_page && (
+      {nextPage && (
         <div className={styles.morePosts}>
           <button type="button" onClick={getMorePosts}>
             Carregar mais posts
