@@ -33,6 +33,31 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
+function FormatPosts(posts: PostPagination): Post[] {
+  const newPostsFormatted = posts.results.map(post => {
+    return {
+      uid: post.uid,
+      first_publication_date: format(
+        new Date(post.first_publication_date),
+        "dd MMM' 'yyyy",
+        {
+          locale: ptBR,
+        }
+      )
+        .toLowerCase()
+        .replace(/\b\w/g, l => l.toUpperCase()),
+      // 27 Mar 2021
+      data: {
+        title: post.data.title as string,
+        subtitle: post.data.subtitle as string,
+        author: post.data.author as string,
+      },
+    };
+  });
+
+  return newPostsFormatted;
+}
+
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const { results, next_page } = postsPagination;
   const [posts, setPosts] = useState(results);
@@ -43,19 +68,19 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
     }
 
     const url = `${next_page}&access_token=MC5ZRl9DUFJNQUFDRUFSWUR0.C--_vT3vv70Q77-977-9NCjvv73vv73vv71IAEMm77-9Du-_ve-_ve-_ve-_ve-_vQnvv73vv71V77-977-977-977-9JA`;
-    console.log(url);
-    return;
 
-    const nextPosts = fetch(url, {
-      method: 'GET',
-      mode: 'no-cors',
-      cache: 'default',
-    }).then(response => console.log(response));
+    const nextPosts = await fetch(url);
+
+    const nextPostsJSON = await nextPosts.json();
+
+    const newPostsFormatted = FormatPosts(nextPostsJSON);
+
+    setPosts([...posts, { ...newPostsFormatted[0] }]);
   }
 
   return (
     <div className={commonStyles.container}>
-      {results.map(post => (
+      {posts.map(post => (
         <Link href={`/post/${post.uid}`} key={post.uid}>
           <div className={styles.post}>
             <h2>{post.data.title}</h2>
@@ -92,26 +117,7 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   );
 
-  const posts = postsResponse.results.map(post => {
-    return {
-      uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        "dd MMM' 'yyyy",
-        {
-          locale: ptBR,
-        }
-      )
-        .toLowerCase()
-        .replace(/\b\w/g, l => l.toUpperCase()),
-      // 27 Mar 2021
-      data: {
-        title: post.data.title as string,
-        subtitle: post.data.subtitle as string,
-        author: post.data.author as string,
-      },
-    };
-  });
+  const posts = FormatPosts(postsResponse);
 
   const finalProps = {
     next_page: postsResponse.next_page,

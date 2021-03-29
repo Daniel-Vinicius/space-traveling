@@ -12,7 +12,20 @@
   }
 
   & + div.post {
+    margin-top: 7rem;
+  }
+
+  & + div.post + div.post {
     margin-top: 3rem;
+  }
+
+  @media (max-width: 28.125rem) {
+    & + div.post {
+      margin-top: 11rem;
+    }
+    & + div.post + div.post {
+      margin-top: 6rem;
+    }
   }
 
   h2 {
@@ -29,9 +42,11 @@
 }
 
 .morePosts {
-  margin-top: 30%;
+  margin-top: 20%;
+  margin-bottom: 5%;
   @media (max-width: 28.125rem) {
-    margin-top: 80%;
+    margin-top: 10rem;
+    margin-bottom: 5rem;
   }
   display: flex;
   width: 100%;
