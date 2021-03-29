@@ -58,8 +58,7 @@ export default function Post({ post }: PostProps): JSX.Element {
 
   const average_reading_time = post.data.content.reduce((acc, content) => {
     const textBody = RichText.asText(content.body);
-    const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/;
-    const split = textBody.split(regex);
+    const split = textBody.split(' ');
     const number_words = split.length;
 
     const result = Math.ceil(number_words / 200);
