@@ -8,7 +8,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 
 import Prismic from '@prismicio/client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -43,10 +43,8 @@ function FormatPosts(posts: PostPagination): Post[] {
         {
           locale: ptBR,
         }
-      )
-        .toLowerCase()
-        .replace(/\b\w/g, l => l.toUpperCase()),
-      // 27 Mar 2021
+      ),
+      // 27 mar 2021
       data: {
         title: post.data.title as string,
         subtitle: post.data.subtitle as string,
@@ -60,7 +58,19 @@ function FormatPosts(posts: PostPagination): Post[] {
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const { results, next_page } = postsPagination;
-  const [posts, setPosts] = useState(results);
+
+  const resultsWithDateFormated = results.map(result => ({
+    ...result,
+    first_publication_date: format(
+      new Date(result.first_publication_date),
+      "dd MMM' 'yyyy",
+      {
+        locale: ptBR,
+      }
+    ),
+  }));
+
+  const [posts, setPosts] = useState(resultsWithDateFormated);
   const [nextPage, setNextPage] = useState(next_page);
 
   async function getMorePosts(): Promise<void> {
@@ -86,6 +96,9 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
 
   return (
     <div className={commonStyles.container}>
+      <div className={commonStyles.logo}>
+        <img src="/images/logo.svg" alt="logo" />
+      </div>
       {posts.map(post => (
         <Link href={`/post/${post.uid}`} key={post.uid}>
           <div className={styles.post}>
@@ -123,7 +136,17 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   );
 
-  const posts = FormatPosts(postsResponse);
+  const posts = postsResponse.results.map(post => {
+    return {
+      uid: post.uid,
+      first_publication_date: post.first_publication_date,
+      data: {
+        title: post.data.title as string,
+        subtitle: post.data.subtitle as string,
+        author: post.data.author as string,
+      },
+    };
+  });
 
   const finalProps = {
     next_page: postsResponse.next_page,
