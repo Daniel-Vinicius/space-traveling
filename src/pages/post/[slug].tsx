@@ -56,7 +56,17 @@ export default function Post({ post }: PostProps): JSX.Element {
     );
   }
 
-  const postWithDateFormated = {
+  const average_reading_time = post.data.content.reduce((acc, content) => {
+    const textBody = RichText.asText(content.body);
+    const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/;
+    const split = textBody.split(regex);
+    const number_words = split.length;
+
+    const result = Math.ceil(number_words / 200);
+    return acc + result;
+  }, 0);
+
+  const postWithDateFormatedAndReadingTime = {
     ...post,
     first_publication_date: format(
       new Date(post.first_publication_date),
@@ -65,6 +75,7 @@ export default function Post({ post }: PostProps): JSX.Element {
         locale: ptBR,
       }
     ),
+    average_reading_time,
   };
 
   return (
@@ -72,22 +83,27 @@ export default function Post({ post }: PostProps): JSX.Element {
       <Header />
       <div className={commonStyles.container}>
         <div className={styles.preview}>
-          <img src={postWithDateFormated.data.banner.url} alt="Banner" />
+          <img
+            src={postWithDateFormatedAndReadingTime.data.banner.url}
+            alt="Banner"
+          />
         </div>
         <main className={styles.contentContainer}>
-          <h1>{postWithDateFormated.data.title}</h1>
+          <h1>{postWithDateFormatedAndReadingTime.data.title}</h1>
           <div className={commonStyles.info}>
             <p>
-              <FiCalendar /> {postWithDateFormated.first_publication_date}
+              <FiCalendar />{' '}
+              {postWithDateFormatedAndReadingTime.first_publication_date}
             </p>
             <p>
-              <FiUser /> {postWithDateFormated.data.author}
+              <FiUser /> {postWithDateFormatedAndReadingTime.data.author}
             </p>
             <p>
-              <FiClock /> 4 min
+              <FiClock />
+              {postWithDateFormatedAndReadingTime.average_reading_time} min
             </p>
           </div>
-          {postWithDateFormated.data.content.map(section => (
+          {postWithDateFormatedAndReadingTime.data.content.map(section => (
             <section
               key={section.body[0].text}
               className={styles.sectionContent}
