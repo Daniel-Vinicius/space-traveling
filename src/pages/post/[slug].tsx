@@ -45,9 +45,10 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({ post, preview }: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -176,6 +177,13 @@ export default function Post({ post }: PostProps): JSX.Element {
             )}
           </footer>
         </main>
+        {preview && (
+          <aside className={commonStyles.previewPrismic}>
+            <Link href="/api/exit-preview">
+              <a>Sair do modo Preview</a>
+            </Link>
+          </aside>
+        )}
       </div>
     </>
   );
@@ -201,7 +209,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps<PostProps> = async ({
+  params,
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient();
   const { slug } = params;
 
@@ -218,6 +230,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     {
       fetch: ['post.results.uid', 'post.results.title'],
       pageSize: 60,
+      ref: previewData?.ref ?? null,
     }
   );
 
@@ -231,6 +244,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     ],
     {
       pageSize: 1,
+      fetch: ['post.results.uid', 'post.results.title'],
+      ref: previewData?.ref ?? null,
     }
   );
 
@@ -269,6 +284,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post,
+      preview,
     },
     revalidate: 3600,
   };
