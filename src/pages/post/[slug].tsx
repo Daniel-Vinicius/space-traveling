@@ -19,6 +19,7 @@ import styles from './post.module.scss';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     next_post?: {
@@ -83,13 +84,24 @@ export default function Post({ post }: PostProps): JSX.Element {
         locale: ptBR,
       }
     ),
+    last_publication_date: format(
+      new Date(post.last_publication_date),
+      "dd MMM' 'yyyy, 'às' HH:mm",
+      {
+        locale: ptBR,
+      }
+    ),
     data: {
       ...post.data,
       average_reading_time: average_reading_time_calc,
     },
   };
 
-  const { data, first_publication_date } = postWithDateFormatedAndReadingTime;
+  const {
+    data,
+    first_publication_date,
+    last_publication_date,
+  } = postWithDateFormatedAndReadingTime;
   const {
     author,
     banner,
@@ -124,9 +136,14 @@ export default function Post({ post }: PostProps): JSX.Element {
               {average_reading_time} min
             </p>
           </div>
+          {last_publication_date && (
+            <div className={styles.edit}>
+              <span> * editado em {last_publication_date}</span>
+            </div>
+          )}
           {content.map(section => (
             <section key={section.heading} className={styles.sectionContent}>
-              <h3>{section.heading}</h3>
+              <h2>{section.heading}</h2>
               <div
                 className={styles.content}
                 // eslint-disable-next-line react/no-danger
@@ -222,6 +239,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
       next_post: {
