@@ -10,6 +10,36 @@
   }
 }
 
+.footer {
+  width: 100%;
+  display: flex;
+  border-top: 1px solid rgb(215, 215, 215, 0.1);
+  margin-top: 3.75rem;
+  padding-top: 3rem;
+  align-items: space-between;
+  justify-content: space-between;
+  .previous,
+  .next {
+    display: flex;
+    cursor: pointer;
+    flex-direction: column;
+    span {
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+      max-width: 21.875rem;
+    }
+    a {
+      color: var(--highlight);
+      font-weight: 600;
+    }
+    transition: filter 0.2s;
+
+    &:hover {
+      filter: brightness(0.8);
+    }
+  }
+}
+
 .contentContainer {
   margin-top: 5rem;
   margin-bottom: 5rem;

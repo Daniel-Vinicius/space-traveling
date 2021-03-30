@@ -1,5 +1,6 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import Head from 'next/head';
+import Link from 'next/link';
 import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 
 import { format } from 'date-fns';
@@ -20,6 +21,14 @@ interface Post {
   first_publication_date: string | null;
   data: {
     title: string;
+    next_post?: {
+      uid: string;
+      title: string;
+    };
+    prev_post?: {
+      uid: string;
+      title: string;
+    };
     banner: {
       url: string;
     };
@@ -56,7 +65,7 @@ export default function Post({ post }: PostProps): JSX.Element {
     );
   }
 
-  const average_reading_time = post.data.content.reduce((acc, content) => {
+  const average_reading_time_calc = post.data.content.reduce((acc, content) => {
     const textBody = RichText.asText(content.body);
     const split = textBody.split(' ');
     const number_words = split.length;
@@ -74,38 +83,48 @@ export default function Post({ post }: PostProps): JSX.Element {
         locale: ptBR,
       }
     ),
-    average_reading_time,
+    data: {
+      ...post.data,
+      average_reading_time: average_reading_time_calc,
+    },
   };
+
+  const { data, first_publication_date } = postWithDateFormatedAndReadingTime;
+  const {
+    author,
+    banner,
+    content,
+    title,
+    next_post,
+    prev_post,
+    average_reading_time,
+  } = data;
 
   return (
     <>
       <Head>
-        <title>{post.data.title}</title>
+        <title>{title}</title>
       </Head>
       <Header />
       <div className={commonStyles.container}>
         <div className={styles.preview}>
-          <img
-            src={postWithDateFormatedAndReadingTime.data.banner.url}
-            alt="Banner"
-          />
+          <img src={banner.url} alt="Banner" />
         </div>
         <main className={styles.contentContainer}>
-          <h1>{postWithDateFormatedAndReadingTime.data.title}</h1>
+          <h1>{title}</h1>
           <div className={commonStyles.info}>
             <p>
-              <FiCalendar />{' '}
-              {postWithDateFormatedAndReadingTime.first_publication_date}
+              <FiCalendar /> {first_publication_date}
             </p>
             <p>
-              <FiUser /> {postWithDateFormatedAndReadingTime.data.author}
+              <FiUser /> {author}
             </p>
             <p>
               <FiClock />
-              {postWithDateFormatedAndReadingTime.average_reading_time} min
+              {average_reading_time} min
             </p>
           </div>
-          {postWithDateFormatedAndReadingTime.data.content.map(section => (
+          {content.map(section => (
             <section key={section.heading} className={styles.sectionContent}>
               <h3>{section.heading}</h3>
               <div
@@ -117,6 +136,28 @@ export default function Post({ post }: PostProps): JSX.Element {
               />
             </section>
           ))}
+          <footer className={styles.footer}>
+            {prev_post.uid ? (
+              <Link href={`/post/${prev_post.uid}`}>
+                <div className={styles.previous}>
+                  <span>{prev_post.title}</span>
+                  <a>Post anterior</a>
+                </div>
+              </Link>
+            ) : (
+              <div />
+            )}
+            {next_post.uid ? (
+              <Link href={`/post/${next_post.uid}`}>
+                <div className={styles.next}>
+                  <span>{next_post.title}</span>
+                  <a>Próximo post</a>
+                </div>
+              </Link>
+            ) : (
+              <div />
+            )}
+          </footer>
         </main>
       </div>
     </>
@@ -149,11 +190,48 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const response = await prismic.getByUID('post', String(slug), {});
 
+  const nextPost = await prismic.query(
+    [
+      Prismic.Predicates.at('document.type', 'post'),
+      Prismic.Predicates.dateAfter(
+        'document.first_publication_date',
+        response.first_publication_date
+      ),
+    ],
+    {
+      pageSize: 1,
+    }
+  );
+
+  const prevPost = await prismic.query(
+    [
+      Prismic.Predicates.at('document.type', 'post'),
+      Prismic.Predicates.dateBefore(
+        'document.first_publication_date',
+        response.first_publication_date
+      ),
+    ],
+    {
+      pageSize: 1,
+    }
+  );
+
+  const next_post = Boolean(nextPost.results[0]);
+  const prev_post = Boolean(prevPost.results[0]);
+
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
     data: {
       title: response.data.title,
+      next_post: {
+        uid: next_post ? nextPost.results[0].uid : null,
+        title: next_post ? nextPost.results[0].data.title : null,
+      },
+      prev_post: {
+        uid: prev_post ? prevPost.results[0].uid : null,
+        title: prev_post ? prevPost.results[0].data.title : null,
+      },
       subtitle: response.data.subtitle,
       author: response.data.author,
       banner: {
