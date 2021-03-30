@@ -216,7 +216,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       ),
     ],
     {
-      pageSize: 1,
+      fetch: ['post.results.uid', 'post.results.title'],
+      pageSize: 60,
     }
   );
 
@@ -233,7 +234,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   );
 
-  const next_post = Boolean(nextPost.results[0]);
+  const qtd_next_post = nextPost.results.length - 1;
+  const next_post = Boolean(nextPost.results[qtd_next_post]);
   const prev_post = Boolean(prevPost.results[0]);
 
   const post = {
@@ -243,8 +245,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     data: {
       title: response.data.title,
       next_post: {
-        uid: next_post ? nextPost.results[0].uid : null,
-        title: next_post ? nextPost.results[0].data.title : null,
+        uid: next_post ? nextPost.results[qtd_next_post].uid : null,
+        title: next_post ? nextPost.results[qtd_next_post].data.title : null,
       },
       prev_post: {
         uid: prev_post ? prevPost.results[0].uid : null,
