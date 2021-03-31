@@ -13,7 +13,7 @@ import { useRouter } from 'next/router';
 import { getPrismicClient } from '../../services/prismic';
 
 import Header from '../../components/Header';
-import Comments from '../../components/Comments';
+import ReactUtterances from '../../components/Comments';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
@@ -178,7 +178,12 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
             )}
           </footer>
         </main>
-        <Comments />
+        <ReactUtterances
+          repo="Daniel-Vinicius/space-traveling"
+          issueMap="issue-term"
+          issueTerm="pathname"
+          theme="github-dark"
+        />
         {preview && (
           <aside className={commonStyles.previewPrismic}>
             <Link href="/api/exit-preview">
@@ -207,7 +212,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   return {
     paths: slugsArray,
-    fallback: true,
+    fallback: 'blocking',
   };
 };
 
@@ -220,6 +225,15 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
   const { slug } = params;
 
   const response = await prismic.getByUID('post', String(slug), {});
+
+  if (!response) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
 
   const nextPost = await prismic.query(
     [
@@ -245,15 +259,16 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
       ),
     ],
     {
-      pageSize: 1,
+      pageSize: 60,
       fetch: ['post.results.uid', 'post.results.title'],
       ref: previewData?.ref ?? null,
     }
   );
 
   const index_next_post = nextPost.results.length - 1;
+  const index_prev_post = prevPost.results.length - 1;
   const next_post = Boolean(nextPost.results[index_next_post]);
-  const prev_post = Boolean(prevPost.results[0]);
+  const prev_post = Boolean(prevPost.results[index_prev_post]);
 
   const post = {
     uid: response.uid,
@@ -266,8 +281,8 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
         title: next_post ? nextPost.results[index_next_post].data.title : null,
       },
       prev_post: {
-        uid: prev_post ? prevPost.results[0].uid : null,
-        title: prev_post ? prevPost.results[0].data.title : null,
+        uid: prev_post ? prevPost.results[index_prev_post].uid : null,
+        title: prev_post ? prevPost.results[index_prev_post].data.title : null,
       },
       subtitle: response.data.subtitle,
       author: response.data.author,

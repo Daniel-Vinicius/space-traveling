@@ -75,7 +75,7 @@ export default function Home({
     ),
   }));
 
-  const [posts, setPosts] = useState(resultsWithDateFormated);
+  const [posts, setPosts] = useState<Post[]>(resultsWithDateFormated);
   const [nextPage, setNextPage] = useState(next_page);
 
   async function getMorePosts(): Promise<void> {
@@ -89,12 +89,9 @@ export default function Home({
 
     const newPostsFormatted = FormatPosts(nextPostsJSON);
 
-    setPosts([...posts, { ...newPostsFormatted[0] }]);
+    setPosts([...posts, ...newPostsFormatted]);
 
-    const nextPageCondition = nextPostsJSON.nextPage
-      ? nextPostsJSON.nextPage
-      : '';
-    setNextPage(nextPageCondition);
+    setNextPage(nextPostsJSON.nextPage);
   }
 
   return (
@@ -106,22 +103,24 @@ export default function Home({
         <div className={commonStyles.logo}>
           <img src="/images/logo.svg" alt="logo" />
         </div>
-        {posts.map(post => (
-          <Link href={`/post/${post.uid}`} key={post.uid}>
-            <div className={styles.post}>
-              <h2>{post.data.title}</h2>
-              <span>{post.data.subtitle}</span>
-              <div className={commonStyles.info}>
-                <p>
-                  <FiCalendar /> {post.first_publication_date}
-                </p>
-                <p>
-                  <FiUser /> {post.data.author}
-                </p>
+        <main className={styles.postContainer}>
+          {posts.map(post => (
+            <Link href={`/post/${post.uid}`} key={post.uid}>
+              <div className={styles.post}>
+                <h2>{post.data.title}</h2>
+                <span>{post.data.subtitle}</span>
+                <div className={commonStyles.info}>
+                  <p>
+                    <FiCalendar /> {post.first_publication_date}
+                  </p>
+                  <p>
+                    <FiUser /> {post.data.author}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </main>
         {nextPage && (
           <div className={styles.morePosts}>
             <button type="button" onClick={getMorePosts}>
@@ -150,7 +149,7 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'post')],
     {
-      pageSize: 10,
+      pageSize: 2,
       ref: previewData?.ref ?? null,
     }
   );

@@ -30,6 +30,7 @@
   justify-content: space-between;
   @media (max-width: 50rem) {
     flex-direction: column;
+    justify-content: center;
     .previous {
       margin-bottom: 1rem;
       padding-bottom: 1rem;

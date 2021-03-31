@@ -1,21 +1,84 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable no-use-before-define */
-import React, { Component } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import styles from './styles.module.scss';
 
-export default class Comments extends Component {
-  componentDidMount() {
-    const script = document.createElement('script');
-    const anchor = document.getElementById('inject-comments-for-uterances');
-    script.setAttribute('src', 'https://utteranc.es/client.js');
-    script.setAttribute('crossorigin', 'anonymous');
-    script.setAttribute('repo', 'Daniel-Vinicius/space-traveling-comments');
-    script.setAttribute('issue-term', 'pathname');
-    script.setAttribute('theme', 'github-dark');
-    anchor.appendChild(script);
+export type MappingType =
+  | 'pathname'
+  | 'url'
+  | 'title'
+  | 'og:title'
+  | 'issue-number'
+  | 'issue-term';
+
+export type Theme =
+  | 'github-light'
+  | 'github-dark'
+  | 'preferred-color-scheme'
+  | 'github-dark-orange'
+  | 'icy-dark'
+  | 'dark-blue'
+  | 'photon-dark';
+
+interface CommentProps {
+  repo: string;
+  issueMap: MappingType;
+  issueTerm?: string;
+  issueNumber?: number;
+  label?: string;
+  theme: Theme;
+}
+
+export default function Comments({
+  issueTerm,
+  issueMap,
+  repo,
+  theme,
+  issueNumber,
+  label,
+}: CommentProps): JSX.Element {
+  const [pending, setPending] = useState(true);
+  const reference = useRef<HTMLDivElement>(null);
+
+  if (issueMap === 'issue-term' && issueTerm === undefined) {
+    throw Error(
+      "Property 'issueTerm' must be provided with issueMap 'issue-term'"
+    );
   }
 
-  render() {
-    return <div id="inject-comments-for-uterances" />;
+  if (issueMap === 'issue-number' && issueNumber === undefined) {
+    throw Error(
+      "Property 'issueNumber' must be provided with issueMap 'issue-number'"
+    );
   }
+
+  useEffect(() => {
+    const scriptElement = document.createElement('script');
+    scriptElement.src = 'https://utteranc.es/client.js';
+    scriptElement.async = true;
+    scriptElement.defer = true;
+    scriptElement.setAttribute('repo', repo);
+    scriptElement.setAttribute('crossorigin', 'annonymous');
+    scriptElement.setAttribute('theme', theme);
+    scriptElement.onload = () => setPending(false);
+
+    if (label) {
+      scriptElement.setAttribute('label', label);
+    }
+
+    if (issueMap === 'issue-number') {
+      scriptElement.setAttribute('issue-number', issueNumber.toString());
+    } else if (issueMap === 'issue-term') {
+      scriptElement.setAttribute('issue-term', issueTerm);
+    } else {
+      scriptElement.setAttribute('issue-term', issueMap);
+    }
+    reference.current.appendChild(scriptElement);
+  }, [issueMap, issueNumber, issueTerm, label, repo, theme]);
+
+  return (
+    <div className={styles.comments}>
+      <div className={styles.utterances} ref={reference}>
+        {pending && <p>Loading Comments...</p>}
+      </div>
+    </div>
+  );
 }
