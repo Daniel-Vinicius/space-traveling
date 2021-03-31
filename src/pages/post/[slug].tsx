@@ -178,12 +178,6 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
             )}
           </footer>
         </main>
-        <ReactUtterances
-          repo="Daniel-Vinicius/space-traveling"
-          issueMap="issue-term"
-          issueTerm="pathname"
-          theme="github-dark"
-        />
         {preview && (
           <aside className={commonStyles.previewPrismic}>
             <Link href="/api/exit-preview">
@@ -191,6 +185,12 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
             </Link>
           </aside>
         )}
+        <ReactUtterances
+          repo="Daniel-Vinicius/space-traveling"
+          issueMap="issue-term"
+          issueTerm="pathname"
+          theme="github-dark"
+        />
       </div>
     </>
   );
