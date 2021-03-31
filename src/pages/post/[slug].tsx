@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import { getPrismicClient } from '../../services/prismic';
 
 import Header from '../../components/Header';
+import Comments from '../../components/Comments';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
@@ -177,6 +178,7 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
             )}
           </footer>
         </main>
+        <Comments />
         {preview && (
           <aside className={commonStyles.previewPrismic}>
             <Link href="/api/exit-preview">
@@ -249,8 +251,8 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     }
   );
 
-  const qtd_next_post = nextPost.results.length - 1;
-  const next_post = Boolean(nextPost.results[qtd_next_post]);
+  const index_next_post = nextPost.results.length - 1;
+  const next_post = Boolean(nextPost.results[index_next_post]);
   const prev_post = Boolean(prevPost.results[0]);
 
   const post = {
@@ -260,8 +262,8 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({
     data: {
       title: response.data.title,
       next_post: {
-        uid: next_post ? nextPost.results[qtd_next_post].uid : null,
-        title: next_post ? nextPost.results[qtd_next_post].data.title : null,
+        uid: next_post ? nextPost.results[index_next_post].uid : null,
+        title: next_post ? nextPost.results[index_next_post].data.title : null,
       },
       prev_post: {
         uid: prev_post ? prevPost.results[0].uid : null,
