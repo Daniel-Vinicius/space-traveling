@@ -121,9 +121,13 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
       </Head>
       <Header />
       <div className={commonStyles.container}>
-        <div className={styles.preview}>
-          <img src={banner.url} alt="Banner" />
-        </div>
+        <div
+          style={{
+            width: '98vw',
+            background: `url(${banner.url}) no-repeat center`,
+            height: '25rem',
+          }}
+        />
         <main className={styles.contentContainer}>
           <h1>{title}</h1>
           <div className={commonStyles.info}>
